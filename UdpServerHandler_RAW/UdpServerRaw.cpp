@@ -24,7 +24,7 @@
 #include <WS2tcpip.h>				// not used here since not TCP/IP <can delete>
 #include <Windows.h>
 #include <iostream>
-#include <string>
+#include <string.h>
 #include <fstream>
 #include <winioctl.h>
 #include <iphlpapi.h>
@@ -33,8 +33,8 @@
 
 #pragma comment(lib,"ws2_32.lib")	// Winsock Library
 
-#define BUFLEN 512	// Max length of buffer
-#define PORT 11000	// The port on which to listen to for incoming data
+#define BUFLEN 432	// Max length of buffer
+#define PORT 12	// The port on which to listen to for incoming data
 
 using namespace std;
 
@@ -85,7 +85,7 @@ int main()
 	printf("Binding socket to port: %d\r\n", PORT);
 	serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	serverAddr.sin_family = AF_INET;
-	serverAddr.sin_port = htons(11000);
+	serverAddr.sin_port = htons(PORT);
 	if (bind(server, (SOCKADDR *)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
 		printf("Bind failed: %d\r\n", WSAGetLastError());
 		printf("Press any key to exit()\n\r");
@@ -95,18 +95,33 @@ int main()
 	printf("Bind successful. Listening for incoming connections...\r\n");
 
 	// Enter listening WHILE-LOOP state...
-	while (1) {
-		if (recv(server, buffer, sizeof(buffer), 0) > 0) {
-			printf("Buffer size is: %d\r\n", sizeof(buffer));
-			printf("Client connected.\n\r");
-			cout << "Client says: " << buffer << endl;
-		}
-		else {
-			printf("SOCKET ERROR: %d\r\n", WSAGetLastError());
-			printf("Press any key to exit()\r\n");
-			getchar();
-			return 1;
-		}
+	for (int i = 0; i < 100; i++) {
+		//while (true) {
+			if (recv(server, buffer, sizeof(buffer), 0) > 0) {
+				//printf("Buffer size is: %d\r\n", sizeof(buffer));
+				//printf("Client connected.\n\r");
+				//cout << "Client says: " << buffer << endl;
+				//printf("%x\r\n", buffer);
+				//cout << buffer << endl;
+
+				int skipline = 0;
+				for (int j = 0; j < BUFLEN; j++) {
+					printf("%02X ", buffer[j]);
+					skipline++;
+					if (skipline == 16) {
+						printf("\r\n");
+						skipline = 0;
+					}
+				}
+				printf("\r\n");
+			}
+			else {
+				printf("SOCKET ERROR: %d\r\n", WSAGetLastError());
+				printf("Press any key to exit()\r\n");
+				getchar();
+				return 1;
+			}
+		//}
 	}
 
 	printf("Press any key to exit()\n\r");
