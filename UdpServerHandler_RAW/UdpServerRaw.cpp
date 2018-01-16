@@ -14,15 +14,29 @@
  * +-----------------.....
  */
 
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif // !WIN32_LEAN_AND_MEAN
+
 #include <stdlib.h>
 #include <stdio.h> 
 #include <WinSock2.h>
-#include <WS2tcpip.h>
+#include <WS2tcpip.h>				// not used here since not TCP/IP <can delete>
+#include <Windows.h>
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <winioctl.h>
+#include <iphlpapi.h>
+
+
 
 #pragma comment(lib,"ws2_32.lib")	// Winsock Library
 
 #define BUFLEN 512	// Max length of buffer
 #define PORT 11000	// The port on which to listen to for incoming data
+
+using namespace std;
 
 int main()
 {
@@ -31,6 +45,8 @@ int main()
 	SOCKADDR_IN serverAddr, clientAddr;
 	BOOL UDPSocketOption = TRUE;
 	int UDPSocketOptionLen = sizeof(BOOL);
+	char buffer[BUFLEN];
+	int clientAddrSize = sizeof(clientAddr);
 
 	// Initialize Winsock
 	printf("Initializing Winsock...\n\r");
@@ -43,7 +59,9 @@ int main()
 
 	// Open socket
 	printf("Creating RAW socket...\n\r");
-	if ((server = socket(AF_INET, SOCK_RAW, IPPROTO_UDP)) == INVALID_SOCKET) {
+	//won't work if using SOCK_RAW
+	//if ((server = socket(AF_INET, SOCK_RAW, IPPROTO_UDP)) == INVALID_SOCKET) {
+	if ((server = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == INVALID_SOCKET) {
 		printf("Could not create RAW socket: %d\r\n", WSAGetLastError());
 		printf("Press any key to exit()\n\r");
 		getchar();
@@ -67,18 +85,29 @@ int main()
 	printf("Binding socket to port: %d\r\n", PORT);
 	serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	serverAddr.sin_family = AF_INET;
-	serverAddr.sin_port = htons(PORT);
+	serverAddr.sin_port = htons(11000);
 	if (bind(server, (SOCKADDR *)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
 		printf("Bind failed: %d\r\n", WSAGetLastError());
 		printf("Press any key to exit()\n\r");
 		getchar();
-		return 1;
+		return 1; 
 	}
 	printf("Bind successful. Listening for incoming connections...\r\n");
 
 	// Enter listening WHILE-LOOP state...
-
-
+	while (1) {
+		if (recv(server, buffer, sizeof(buffer), 0) > 0) {
+			printf("Buffer size is: %d\r\n", sizeof(buffer));
+			printf("Client connected.\n\r");
+			cout << "Client says: " << buffer << endl;
+		}
+		else {
+			printf("SOCKET ERROR: %d\r\n", WSAGetLastError());
+			printf("Press any key to exit()\r\n");
+			getchar();
+			return 1;
+		}
+	}
 
 	printf("Press any key to exit()\n\r");
 	getchar();
