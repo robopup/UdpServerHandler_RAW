@@ -48,6 +48,7 @@ int main()
 	char buffer[BUFLEN];
 	int clientAddrSize = sizeof(clientAddr);
 
+
 	// Initialize Winsock
 	printf("Initializing Winsock...\n\r");
 	if (WSAStartup(MAKEWORD(2, 2), &WSAData) != 0) {
@@ -80,7 +81,7 @@ int main()
 		return 1;
 	}
 	*/
-
+	
 	// Bind socket to address
 	printf("Binding socket to port: %d\r\n", PORT);
 	serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -95,8 +96,8 @@ int main()
 	printf("Bind successful. Listening for incoming connections...\r\n");
 
 	// Enter listening WHILE-LOOP state...
-	for (int i = 0; i < 100; i++) {
-		//while (true) {
+	//for (int i = 0; i < 100; i++) {
+		while (true) {
 			if (recv(server, buffer, sizeof(buffer), 0) > 0) {
 				//printf("Buffer size is: %d\r\n", sizeof(buffer));
 				//printf("Client connected.\n\r");
@@ -106,7 +107,7 @@ int main()
 
 				int skipline = 0;
 				for (int j = 0; j < BUFLEN; j++) {
-					printf("%02X ", buffer[j]);
+					printf("%02X ", (unsigned char)(buffer[j]));
 					skipline++;
 					if (skipline == 16) {
 						printf("\r\n");
@@ -121,8 +122,8 @@ int main()
 				getchar();
 				return 1;
 			}
-		//}
-	}
+		}
+	//}
 
 	printf("Press any key to exit()\n\r");
 	getchar();
