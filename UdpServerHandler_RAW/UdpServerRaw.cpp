@@ -29,12 +29,13 @@
 #include <winioctl.h>
 #include <iphlpapi.h>
 
-
-
 #pragma comment(lib,"ws2_32.lib")	// Winsock Library
 
 #define BUFLEN 432	// Max length of buffer
 #define PORT 12	// The port on which to listen to for incoming data
+
+// Function Protoypes
+void swap(char *firstElem, char *secondElem);
 
 using namespace std;
 
@@ -47,6 +48,9 @@ int main()
 	int UDPSocketOptionLen = sizeof(BOOL);
 	char buffer[BUFLEN];
 	int clientAddrSize = sizeof(clientAddr);
+	int NumWordPairs = BUFLEN/4;
+	DWORD dataValue;
+	DWORD packetResults[BUFLEN];
 
 
 	// Initialize Winsock
@@ -99,17 +103,20 @@ int main()
 	//for (int i = 0; i < 100; i++) {
 		while (true) {
 			if (recv(server, buffer, sizeof(buffer), 0) > 0) {
-				//printf("Buffer size is: %d\r\n", sizeof(buffer));
-				//printf("Client connected.\n\r");
-				//cout << "Client says: " << buffer << endl;
-				//printf("%x\r\n", buffer);
-				//cout << buffer << endl;
 
+				// Swap and rearrange the buffer
+				for (int i = 0; i < 432; i+=4) {
+					swap(buffer[i + 0], buffer[i + 3]);
+					swap(buffer[i + 1], buffer[i + 2]);
+					packetResults[i] = buffer[i] << 4;
+
+				}
+				
 				int skipline = 0;
 				for (int j = 0; j < BUFLEN; j++) {
 					printf("%02X ", (unsigned char)(buffer[j]));
 					skipline++;
-					if (skipline == 16) {
+					if (skipline == 4) {
 						printf("\r\n");
 						skipline = 0;
 					}
@@ -129,4 +136,13 @@ int main()
 	getchar();
 
 	return 0;
+}
+
+
+// Functions
+void swap(char *firstElem, char *secondElem)
+{
+	char temp = *firstElem;
+	*firstElem = *secondElem;
+	*secondElem = temp;
 }
