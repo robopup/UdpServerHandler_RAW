@@ -18,6 +18,9 @@
 #define WIN32_LEAN_AND_MEAN
 #endif // !WIN32_LEAN_AND_MEAN
 
+#define UNICODE 1
+#define _UNICODE 1
+
 #include <stdlib.h>
 #include <stdio.h> 
 #include <WinSock2.h>
@@ -26,6 +29,11 @@
 #include <iostream>
 #include <string.h>
 #include <fstream>
+#include <winioctl.h>
+#include <iphlpapi.h>
+#include <fstream>
+#include <tchar.h>
+#include <strsafe.h>
 #include <winioctl.h>
 #include <iphlpapi.h>
 
@@ -52,6 +60,25 @@ int main()
 	DWORD data[108] = { 0 };
 	int track;
 	int wrapSize = 4;
+
+	TCHAR szBuffer[256];
+	char DataBuffer[512];
+	DWORD dwBytesToWrite = (DWORD)strlen(DataBuffer);
+	DWORD dwBytesWritten = 0;
+	BOOL bErrorFlag = FALSE;
+
+	DWORD dwBytesToWriteETH;
+	DWORD dwBytesWrittenETH;
+
+	// Create File to be Written
+	HANDLE hFile;
+	hFile = CreateFile(L"\\\\.\\I:\\ETHWriteTest.txt", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hFile == INVALID_HANDLE_VALUE) {
+		printf("Terminal failure: Unable to open file for writing.\n\r");
+		printf("Press enter to exit()\n\r");
+		getchar();
+		return 1;
+	}
 
 	// Initialize Winsock
 	printf("Initializing Winsock...\n\r");
@@ -103,6 +130,14 @@ int main()
 	while (true) {
 		if (recv(server, buffer, sizeof(buffer), 0) > 0) {
 
+			// Write to SD CARD
+			dwBytesToWriteETH = (DWORD)strlen(buffer);
+			dwBytesWrittenETH = 0;
+			bErrorFlag = WriteFile(hFile, buffer, dwBytesToWriteETH, &dwBytesWrittenETH, NULL);
+			if (bErrorFlag == FALSE) {
+				printf("Terminal failure: Unable to write to file.\n\r");
+			}
+
 			// Swap and rearrange the buffer
 			// Rearranges little endian -> big endian format
 			for (int i = 0; i < 432; i+=4) {
@@ -127,7 +162,7 @@ int main()
 					printf("\r\n");
 				}
 			}
-			
+
 			/*
 			int skipline = 0;
 			for (int j = 0; j < BUFLEN; j++) {
