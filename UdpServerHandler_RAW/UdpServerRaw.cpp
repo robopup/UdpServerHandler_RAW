@@ -49,9 +49,9 @@ int main()
 	char buffer[BUFLEN];
 	int clientAddrSize = sizeof(clientAddr);
 	int NumWordPairs = BUFLEN/4;
-	DWORD dataValue;
-	DWORD packetResults[BUFLEN];
-
+	DWORD data[108] = { 0 };
+	int track;
+	int wrapSize = 4;
 
 	// Initialize Winsock
 	printf("Initializing Winsock...\n\r");
@@ -100,38 +100,56 @@ int main()
 	printf("Bind successful. Listening for incoming connections...\r\n");
 
 	// Enter listening WHILE-LOOP state...
-	//for (int i = 0; i < 100; i++) {
-		while (true) {
-			if (recv(server, buffer, sizeof(buffer), 0) > 0) {
+	while (true) {
+		if (recv(server, buffer, sizeof(buffer), 0) > 0) {
 
-				// Swap and rearrange the buffer
-				for (int i = 0; i < 432; i+=4) {
-					swap(buffer[i + 0], buffer[i + 3]);
-					swap(buffer[i + 1], buffer[i + 2]);
-					packetResults[i] = buffer[i] << 4;
+			// Swap and rearrange the buffer
+			// Rearranges little endian -> big endian format
+			for (int i = 0; i < 432; i+=4) {
+				swap(buffer[i + 0], buffer[i + 3]);
+				swap(buffer[i + 1], buffer[i + 2]);
+			}
+			
+			// Rearrange into columns
+			// Count	Time	ZC#1	ZC#2	ZC#3	ZC#4
+			// -----	----	----	----	----	----
+			int track = 0;
+			int skipline = 0;
+			for (int k = 0; k < BUFLEN; k += 4) {
+				for (int m = 0; m < wrapSize; m++) {
+					data[track] = (data[track] << 8) | (unsigned char)buffer[m + k];
+				}
+				printf("%10d", data[track]);
+				skipline++;
+				track++;
+				if (skipline == 6) {
+					skipline = 0;
+					printf("\r\n");
+				}
+			}
+			
+			/*
+			int skipline = 0;
+			for (int j = 0; j < BUFLEN; j++) {
+				printf("%02X ", (unsigned char)(buffer[j]));
+				skipline++;
+				if (skipline == 4) {
+					printf("\r\n");
+					skipline = 0;
+				}
+			}
+			*/
 
-				}
-				
-				int skipline = 0;
-				for (int j = 0; j < BUFLEN; j++) {
-					printf("%02X ", (unsigned char)(buffer[j]));
-					skipline++;
-					if (skipline == 4) {
-						printf("\r\n");
-						skipline = 0;
-					}
-				}
-				printf("\r\n");
-			}
-			else {
-				printf("SOCKET ERROR: %d\r\n", WSAGetLastError());
-				printf("Press any key to exit()\r\n");
-				getchar();
-				return 1;
-			}
+			printf("\r\n");
 		}
-	//}
-
+		else {
+			printf("SOCKET ERROR: %d\r\n", WSAGetLastError());
+			printf("Press any key to exit()\r\n");
+			getchar();
+			return 1;
+		}
+	}
+	
 	printf("Press any key to exit()\n\r");
 	getchar();
 
