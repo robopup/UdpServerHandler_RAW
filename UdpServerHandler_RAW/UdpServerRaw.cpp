@@ -72,7 +72,7 @@ int main()
 
 	// Create File to be Written
 	HANDLE hFile;
-	hFile = CreateFile(L"\\\\.\\I:\\ETHWriteTest.txt", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	hFile = CreateFile(L"\\\\.\\I:\\WriteBinaryData", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == INVALID_HANDLE_VALUE) {
 		printf("Terminal failure: Unable to open file for writing.\n\r");
 		printf("Press enter to exit()\n\r");
