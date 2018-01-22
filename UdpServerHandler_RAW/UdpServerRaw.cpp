@@ -36,6 +36,7 @@
 #include <strsafe.h>
 #include <winioctl.h>
 #include <iphlpapi.h>
+#include <time.h>
 
 #pragma comment(lib,"ws2_32.lib")	// Winsock Library
 
@@ -72,7 +73,9 @@ int main()
 
 	// Create File to be Written
 	HANDLE hFile;
-	hFile = CreateFile(L"\\\\.\\I:\\WriteBinaryData", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	hFile = CreateFile(L"\\\\.\\I:\\WriteBinaryData.bin", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	// hFile = CreateFile(...,...,...,FILE_ATTRIBUTE_NORMAL,...);
+	// or use: FILE_FLAG_WRITE_THROUGH|FILE_FLAG_NO_BUFFERING
 	if (hFile == INVALID_HANDLE_VALUE) {
 		printf("Terminal failure: Unable to open file for writing.\n\r");
 		printf("Press enter to exit()\n\r");
@@ -126,18 +129,27 @@ int main()
 	}
 	printf("Bind successful. Listening for incoming connections...\r\n");
 
-	// Enter listening WHILE-LOOP state...
-	while (true) {
+	// Enter listening FOR-LOOP state...
+	//while (true) {
+	// Write to SD CARD
+	dwBytesToWriteETH = (DWORD)(BUFLEN);
+	clock_t begin = clock();
+	for(int km = 0; km < 100000; km++){
+		dwBytesWrittenETH = 0;
 		if (recv(server, buffer, sizeof(buffer), 0) > 0) {
 
-			// Write to SD CARD
-			dwBytesToWriteETH = (DWORD)strlen(buffer);
-			dwBytesWrittenETH = 0;
+			// buffer has 432 bytes of data
+			// need to pad these before pushing out in 512 byte blocks
+
+			//printf("dwBytesToWriteETH: %d", dwBytesToWriteETH);
+			//getchar();
+
 			bErrorFlag = WriteFile(hFile, buffer, dwBytesToWriteETH, &dwBytesWrittenETH, NULL);
 			if (bErrorFlag == FALSE) {
 				printf("Terminal failure: Unable to write to file.\n\r");
 			}
 
+			/* <- comment/uncomment
 			// Swap and rearrange the buffer
 			// Rearranges little endian -> big endian format
 			for (int i = 0; i < 432; i+=4) {
@@ -163,7 +175,6 @@ int main()
 				}
 			}
 
-			/*
 			int skipline = 0;
 			for (int j = 0; j < BUFLEN; j++) {
 				printf("%02X ", (unsigned char)(buffer[j]));
@@ -173,9 +184,9 @@ int main()
 					skipline = 0;
 				}
 			}
-			*/
 
 			printf("\r\n");
+			*/ // comment/uncomment
 		}
 		else {
 			printf("SOCKET ERROR: %d\r\n", WSAGetLastError());
@@ -184,7 +195,16 @@ int main()
 			return 1;
 		}
 	}
-	
+	clock_t end = clock();
+
+	unsigned long time_spent = (unsigned long)(end - begin) / CLOCKS_PER_SEC;
+
+	printf("Time elapsed for 51.2MB is: %lu\n\r", time_spent);
+
+	if (!CloseHandle(hFile)){
+		printf("CloseHandle failed.\n\r");
+	}
+
 	printf("Press any key to exit()\n\r");
 	getchar();
 
