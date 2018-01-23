@@ -14,6 +14,8 @@
  * +-----------------.....
  */
 
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif // !WIN32_LEAN_AND_MEAN
@@ -40,8 +42,8 @@
 
 #pragma comment(lib,"ws2_32.lib")	// Winsock Library
 
-#define BUFLEN 432	// Max length of buffer
-#define PORT 12	// The port on which to listen to for incoming data
+#define BUFLEN	432	// Max length of buffer
+#define PORT	12	// The port on which to listen to for incoming data ; 0 for any port
 
 // Function Protoypes
 void swap(char *firstElem, char *secondElem);
@@ -73,7 +75,7 @@ int main()
 
 	// Create File to be Written
 	HANDLE hFile;
-	hFile = CreateFile(L"\\\\.\\I:\\WriteBinaryData.bin", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	hFile = CreateFile(L"\\\\.\\E:\\WriteBinaryData.bin", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	// hFile = CreateFile(...,...,...,FILE_ATTRIBUTE_NORMAL,...);
 	// or use: FILE_FLAG_WRITE_THROUGH|FILE_FLAG_NO_BUFFERING
 	if (hFile == INVALID_HANDLE_VALUE) {
@@ -118,9 +120,9 @@ int main()
 	
 	// Bind socket to address
 	printf("Binding socket to port: %d\r\n", PORT);
-	serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	serverAddr.sin_addr.s_addr = inet_addr("192.168.1.11");		// htonl(INADDR_ANY) or inet_addr("192.168.1.11");
 	serverAddr.sin_family = AF_INET;
-	serverAddr.sin_port = htons(PORT);
+	serverAddr.sin_port = htons(PORT);							// htons(PORT)
 	if (bind(server, (SOCKADDR *)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
 		printf("Bind failed: %d\r\n", WSAGetLastError());
 		printf("Press any key to exit()\n\r");
@@ -134,7 +136,7 @@ int main()
 	// Write to SD CARD
 	dwBytesToWriteETH = (DWORD)(BUFLEN);
 	clock_t begin = clock();
-	for(int km = 0; km < 100000; km++){
+	for(int km = 0; km < 10000; km++){
 		dwBytesWrittenETH = 0;
 		if (recv(server, buffer, sizeof(buffer), 0) > 0) {
 
@@ -143,6 +145,8 @@ int main()
 
 			//printf("dwBytesToWriteETH: %d", dwBytesToWriteETH);
 			//getchar();
+
+
 
 			bErrorFlag = WriteFile(hFile, buffer, dwBytesToWriteETH, &dwBytesWrittenETH, NULL);
 			if (bErrorFlag == FALSE) {
