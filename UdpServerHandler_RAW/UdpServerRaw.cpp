@@ -92,7 +92,7 @@ int main()
 
 	// Create/Open Data File to be Written
 	HANDLE hFile;
-	hFile = CreateFile(L"\\\\.\\I:\\WriteBinaryData_02072018_2.bin", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	hFile = CreateFile(L"\\\\.\\I:\\WriteBinaryData_02092018_2.bin", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	// hFile = CreateFile(...,...,...,FILE_ATTRIBUTE_NORMAL,...);
 	// or use: FILE_FLAG_WRITE_THROUGH|FILE_FLAG_NO_BUFFERING
 	if (hFile == INVALID_HANDLE_VALUE) {
@@ -213,6 +213,11 @@ int main()
 			bErrorFlag = WriteFile(hFile, buffer, dwBytesToWriteETH, &dwBytesWrittenETH, NULL);
 			if (bErrorFlag == FALSE) {
 				printf("Terminal failure: Unable to write to file.\n\r");
+			}
+
+			// clear data buffer
+			for (int i = 0; i < BUFLEN; i++) {
+				buffer[i] = 0;
 			}
 		}
 		else {
