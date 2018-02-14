@@ -92,7 +92,7 @@ int main()
 
 	// Create/Open Data File to be Written
 	HANDLE hFile;
-	hFile = CreateFile(L"\\\\.\\I:\\WriteBinaryData_02092018_2.bin", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	hFile = CreateFile(L"\\\\.\\I:\\WriteBinaryData_02142018.bin", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	// hFile = CreateFile(...,...,...,FILE_ATTRIBUTE_NORMAL,...);
 	// or use: FILE_FLAG_WRITE_THROUGH|FILE_FLAG_NO_BUFFERING
 	if (hFile == INVALID_HANDLE_VALUE) {
@@ -126,19 +126,6 @@ int main()
 	clientAddr.sin_family = AF_INET;
 	clientAddr.sin_addr.s_addr = inet_addr("192.168.1.10");
 	clientAddr.sin_port = htons(SEND_PORT);
-
-	// Connect to Picozed
-	/*
-	iResult = connect(client, (SOCKADDR*)&clientAddr, sizeof(clientAddr));
-	if (iResult == SOCKET_ERROR) {
-		printf("Connection to Picozed failed with error: %d\n\r", WSAGetLastError());
-		closesocket(client);
-		WSACleanup();
-		printf("Press any key to exit()\n\r");
-		getchar();
-		return 1;
-	}
-	*/
 
 	char startByte[1] = { 0x40 };
 	int startByteSent;
@@ -200,15 +187,15 @@ int main()
 	// Write to SD CARD
 	dwBytesToWriteETH = (DWORD)(BUFLEN);
 	clock_t begin = clock();
-	for(int km = 0; km < 60000; km++){
+	for(int km = 0; km < 600000; km++){
 		
 		dwBytesWrittenETH = 0;
 		if (recv(server, buffer, sizeof(buffer), 0) > 0) {
 
 			// 'just to be friendly instead of waiting forever....
 			if (km == 0) printf("Record 0 saved.\n\r");
-			if (km == 30000) printf("Record %d saved.\n\r",km);
-			if (km == 55000) printf("Almost done...at record %d.\n\r", km);
+			if (km == 300000) printf("Record %d saved.\n\r",km);
+			if (km == 550000) printf("Almost done...at record %d.\n\r", km);
 
 			bErrorFlag = WriteFile(hFile, buffer, dwBytesToWriteETH, &dwBytesWrittenETH, NULL);
 			if (bErrorFlag == FALSE) {
